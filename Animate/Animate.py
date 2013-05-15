@@ -44,7 +44,7 @@ class Animate(BasePlugin.BasePlugin):
             Lightpack.SetStatus(self.sessionKey,1)
             self.onAnimationChange()
         self.log("run")
-        
+
     def stop(self):
         self.timeranim.stop()
         Lightpack.UnLock(self.sessionKey)
@@ -62,6 +62,11 @@ class Animate(BasePlugin.BasePlugin):
         self.rbAnimation2.setText('Disco distro')
         self.rbAnimation2.connect('clicked()', self.onAnimationChange)
         layout.addWidget(self.rbAnimation2)
+
+        self.rbChristmas = QRadioButton(parent)
+        self.rbChristmas.setText('Christmas')
+        self.rbChristmas.connect('clicked()', self.onAnimationChange)
+        layout.addWidget(self.rbChristmas)
 
         self.rbSnakeAnimation = QRadioButton(parent)
         self.rbSnakeAnimation.setText('Snake')
@@ -105,7 +110,7 @@ class Animate(BasePlugin.BasePlugin):
         self.setMap()
 
     def mapToStr(self,map):
-        return ','.join(str(x) for x in map) 
+        return ','.join(str(x) for x in map)
 
     def setMap(self):
         try:
@@ -114,7 +119,7 @@ class Animate(BasePlugin.BasePlugin):
             self.log(str(self.ledMap))
         except Exception, e:
             self.log(str(e))
-            self.ledMap = self.defaultMap()     
+            self.ledMap = self.defaultMap()
 
     def Animation1(self):
         try:
@@ -155,8 +160,23 @@ class Animate(BasePlugin.BasePlugin):
         except Exception, e:
             self.log(str(e))
 
+    def Christmas(self):
+        try:
+            self.i = self.i+1
+            leds = Lightpack.GetCountLeds()
+            for k  in range (0, leds):
+                if ((k + self.i) % 3 == 0):
+                    self.lastFrame[self.ledMap[k]-1]=QColor(255,0,0)
+                elif ((k + self.i) % 3 == 1):
+                    self.lastFrame[self.ledMap[k]-1]=QColor(0,255,0)
+                else:
+                    self.lastFrame[self.ledMap[k]-1]=QColor(0,0,255)
+            Lightpack.SetFrame(self.sessionKey, self.lastFrame)
+        except Exception, e:
+            self.log(str(e))
+
     def SnakeAnimation(self):
-        for k in range (0, self.ledsCount) :    
+        for k in range (0, self.ledsCount) :
             idx = (self.i+k) % self.ledsCount
             if k < 3 :
                 self.lastFrame[self.ledMap[idx]-1]=QColor(255,0,0)
@@ -166,9 +186,9 @@ class Animate(BasePlugin.BasePlugin):
         self.i += 1
 
     def CylonAnimation(self):
-        for k in self.cylonMap: 
+        for k in self.cylonMap:
             idx = self.cylonMap.index(k)
-            cyclePhase = self.i % self.cylonCycleLength 
+            cyclePhase = self.i % self.cylonCycleLength
             if (cyclePhase > self.cylonWidth-1 and idx == 2*(self.cylonWidth-1) - cyclePhase) or (idx == cyclePhase):
                 for i in k:
                     self.lastFrame[i-1]=QColor(255,0,0)
@@ -191,6 +211,11 @@ class Animate(BasePlugin.BasePlugin):
         elif self.rbAnimation2.isChecked():
             self.timeranim.setInterval(200)
             self.timeranim.timeout.connect(self.Animation2)
+            self.timeranim.start()
+
+        elif self.rbChristmas.isChecked():
+            self.timeranim.setInterval(1000)
+            self.timeranim.timeout.connect(self.Christmas)
             self.timeranim.start()
 
         elif self.rbSnakeAnimation.isChecked():
